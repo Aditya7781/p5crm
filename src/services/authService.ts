@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api/v1/users";
+const API_BASE_URL = "https://p5crm-backend.vercel.app/api/v1/users";
 
 export async function loginUser(email: string, password: string, role: string) {
   const response = await axios.post(
