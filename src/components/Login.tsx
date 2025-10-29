@@ -190,23 +190,6 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="px-3 sm:px-5 md:px-8 pt-1 pb-3 sm:pb-4 md:pb-5 text-white">
-        <div className="mx-auto flex max-w-6xl flex-col md:flex-row items-center justify-between gap-2 sm:gap-3">
-          <div className="flex items-center gap-3 sm:gap-4 text-[11px] sm:text-xs text-white/80">
-            <a className="hover:text-white" href="#">
-              Privacy
-            </a>
-            <a className="hover:text-white" href="#">
-              Terms
-            </a>
-            <a className="hover:text-white" href="#">
-              Status
-            </a>
-          </div>
-        </div>
-      </footer>
-
       {/* Fixed Brand */}
       <div className="fixed left-[clamp(8px,2.5vw,20px)] bottom-[calc(env(safe-area-inset-bottom,0px)+clamp(8px,2.5vw,20px))] z-10 flex items-center gap-2 sm:gap-3 max-w-[92vw]">
         <img
