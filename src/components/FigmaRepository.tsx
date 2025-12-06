@@ -1,47 +1,81 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import axios from "axios";
 import { Search, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
 type FigmaRepositoryRow = {
-  projectId: string;
+  _id: string;
+  projectID: string;
   projectName: string;
-  description: string;
+  description: string; // SOW
   projectLead: string;
-  figmaDesign: string;
+  figmaLink: string;
 };
 
-const PER_PAGE = 10;
+const API = import.meta.env.VITE_API_BASE_URL;
 
-const sampleRows: FigmaRepositoryRow[] = Array.from({ length: 48 }).map(
-  (_, i) => ({
-    projectId: String(1 + i).padStart(5, "0"),
-    projectName: "RealState",
-    description: "Project description details",
-    projectLead: "Arjun Rana",
-    figmaDesign: "figma-design-link",
-  })
-);
+const PER_PAGE = 10;
 
 const FigmaRepository: React.FC = () => {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const [rows, setRows] = useState<FigmaRepositoryRow[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  // -------------------------------------------------------
+  // FETCH PROJECTS FROM API
+  // -------------------------------------------------------
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoading(true);
+      try {
+        const res = await axios.get(`${API}/api/v1/designer/working`, {
+          withCredentials: true,
+        });
+
+        const list = res.data?.data || [];
+
+        const formatted: FigmaRepositoryRow[] = list.map((p: any) => ({
+          _id: p._id,
+          projectID: p.projectID ?? "-",
+          projectName: p.projectName ?? "-",
+          description: p.description ?? "-",
+          projectLead: p.projectLead ?? "N/A",
+          figmaLink: p.figmaLink ?? "-",
+        }));
+
+        setRows(formatted);
+      } catch (error) {
+        console.error("Axios GET /designer/working Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
+  // -------------------------------------------------------
+  // SEARCH
+  // -------------------------------------------------------
   const filtered = useMemo(() => {
-    if (!query.trim()) return sampleRows;
+    if (!query.trim()) return rows;
     const q = query.toLowerCase();
-    return sampleRows.filter((r) =>
+    return rows.filter((r) =>
       [
-        r.projectId,
+        r.projectID,
         r.projectName,
         r.description,
         r.projectLead,
-        r.figmaDesign,
+        r.figmaLink,
       ].some((v) => String(v).toLowerCase().includes(q))
     );
-  }, [query]);
+  }, [query, rows]);
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   const pageData = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
   const go = (p: number) => setPage(Math.min(pageCount, Math.max(1, p)));
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className="space-y-5 max-w-full overflow-x-hidden">
@@ -66,16 +100,15 @@ const FigmaRepository: React.FC = () => {
         />
       </div>
 
-      {/* Card */}
+      {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
-        {/* Table scroller */}
         <div className="relative w-full overflow-x-auto">
           <table className="min-w-[1000px] md:min-w-[1200px] divide-y divide-gray-100">
             <thead className="bg-[#F8FAFF] sticky top-0 z-10">
               <tr>
                 <Th>Project ID</Th>
                 <Th>Project Name</Th>
-                <Th>Description</Th>
+                <Th>SOW</Th>
                 <Th>Project Lead</Th>
                 <Th>Figma Design</Th>
               </tr>
@@ -83,35 +116,44 @@ const FigmaRepository: React.FC = () => {
             <tbody className="divide-y divide-gray-50">
               {pageData.map((r, idx) => (
                 <tr
-                  key={r.projectId}
+                  key={r._id}
                   className={idx % 2 ? "bg-[#F6FAFF]" : undefined}
                 >
-                  <Td>{r.projectId}</Td>
+                  <Td>{r.projectID}</Td>
                   <Td>{r.projectName}</Td>
+
+                  {/* SOW */}
                   <Td>
-                    <button
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition"
-                      title="View Description"
-                      aria-label={`View description for project ${r.projectId}`}
-                      onClick={() =>
-                        alert(`View description for project ${r.projectId}`)
-                      }
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
+                    {r.description ? (
+                      <button
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition"
+                        onClick={() => window.open(r.description, "_blank")}
+                        title="View SOW"
+                        aria-label={`View SOW for project ${r.projectID}`}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      "-"
+                    )}
                   </Td>
+
                   <Td>{r.projectLead}</Td>
+
+                  {/* Figma */}
                   <Td>
-                    <button
-                      className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition"
-                      title="View Figma Design"
-                      aria-label={`View Figma design for project ${r.projectId}`}
-                      onClick={() =>
-                        alert(`View Figma design for project ${r.projectId}`)
-                      }
-                    >
-                      <Eye className="w-4 h-4" />
-                    </button>
+                    {r.figmaLink ? (
+                      <button
+                        className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition"
+                        onClick={() => window.open(r.figmaLink, "_blank")}
+                        title="View Figma Design"
+                        aria-label={`View Figma design for project ${r.projectID}`}
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      "-"
+                    )}
                   </Td>
                 </tr>
               ))}
@@ -126,7 +168,6 @@ const FigmaRepository: React.FC = () => {
             onClick={() => go(page - 1)}
             disabled={page === 1}
             title="Previous page"
-            aria-label="Go to previous page"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -142,8 +183,6 @@ const FigmaRepository: React.FC = () => {
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
                 title={`Go to page ${p}`}
-                aria-label={`Go to page ${p}`}
-                aria-current={p === page ? "page" : undefined}
               >
                 {p}
               </button>
@@ -154,7 +193,6 @@ const FigmaRepository: React.FC = () => {
             onClick={() => go(page + 1)}
             disabled={page === pageCount}
             title="Next page"
-            aria-label="Go to next page"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
