@@ -238,7 +238,7 @@ const ProjectLead: React.FC = () => {
               No projects found.
             </div>
           ) : (
-            <table className="min-w-[1400px] divide-y divide-gray-100">
+            <table className="w-full min-w-max divide-y divide-gray-100">
               <thead className="bg-[#F8FAFF] sticky top-0 z-10">
                 <tr>
                   <Th>Project ID</Th>
